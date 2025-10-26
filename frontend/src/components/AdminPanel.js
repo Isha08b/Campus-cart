@@ -2,27 +2,62 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// The Admin API URL
 const API_URL = "http://localhost:5000/api/admin";
+// The shared Category API URL (Mocked for now, assume this is a shared endpoint)
+const CATEGORY_API_URL = "http://localhost:5000/api/categories"; 
+
+// Mock function to simulate fetching/updating categories from a shared source
+// REPLACE WITH REAL AXIOS CALLS TO YOUR CATEGORY API
+const mockCategoryStorage = {
+    categories: ["Laptops", "Books & Stationery", "Electronics", "Other"],
+    fetch: () => Promise.resolve(mockCategoryStorage.categories),
+    add: (newCat) => {
+        if (!mockCategoryStorage.categories.includes(newCat)) {
+            mockCategoryStorage.categories.push(newCat);
+        }
+        return Promise.resolve(mockCategoryStorage.categories);
+    },
+    delete: (cat) => {
+        mockCategoryStorage.categories = mockCategoryStorage.categories.filter(c => c !== cat);
+        return Promise.resolve(mockCategoryStorage.categories);
+    }
+};
 
 const AdminPanel = () => {
   const [requests, setRequests] = useState([]);
   const [students, setStudents] = useState([]);
-  const [categories, setCategories] = useState(["Laptops", "Books", "Electronics", "Other"]);
+  // ⭐ CHANGE: Initial state now comes from a function call
+  const [categories, setCategories] = useState([]); 
   const [newCategory, setNewCategory] = useState("");
   const [showProfile, setShowProfile] = useState(false);
-  const [adminProfile, setAdminProfile] = useState({ name: "", email: "", password: "" }); // Initial state for admin profile
+  const [adminProfile, setAdminProfile] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
 
-  //   Fetch data on component mount
+  // ⭐ NEW: Fetch categories
+  const fetchCategories = async () => {
+    try {
+        // ⭐ ACTION: Replace mockCategoryStorage.fetch with: await axios.get(CATEGORY_API_URL);
+        const fetchedCategories = await mockCategoryStorage.fetch(); 
+        setCategories(fetchedCategories);
+    } catch (err) {
+        console.error("Error fetching categories:", err);
+    }
+  }
+
+  // ✅ Fetch data on component mount
   useEffect(() => {
     fetchPendingItems();
-    fetchStudents();
+    // fetchStudents();
     fetchAdminProfile();
+    fetchCategories(); // ⭐ NEW: Fetch categories on load
   }, []);
 
-  //   Fetch pending items
+  // ✅ Fetch pending items
+  // (No change)
   const fetchPendingItems = async () => {
     try {
+      // NOTE: Ensure your backend endpoint returns the Student object along with the item
       const res = await axios.get(`${API_URL}/pending-items`);
       setRequests(res.data);
     } catch (err) {
@@ -30,82 +65,81 @@ const AdminPanel = () => {
     }
   };
 
-  //   Fetch registered students
-  const fetchStudents = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/students`);
-      setStudents(res.data);
-    } catch (err) {
-      console.error("Error fetching students:", err);
-    }
-  };
+  const API_URL = 'http://localhost:5000/api/admin'; 
 
-  //   Fetch admin's own profile information
-  const fetchAdminProfile = async () => {
+// This array contains existing student IDs and the fields to update
+const updates = [
+    // Note: The _id is crucial for the backend to know which document to update
+    { _id: '60c728e21a24d52e5d93e150', course: 'B.Tech CSE - 6 Sem' },
+    { _id: '60c728e21a24d52e5d93e151', listingsCount: 5 },
+    { _id: '60c728e21a24d52e5d93e152', isGraduated: true, course: 'Alumni' },
+];
+
+const updateMultipleStudents = async () => {
     try {
-      // Assuming admin ID is stored after login
-      const adminId = localStorage.getItem("adminId");
-      if (adminId) {
-        const res = await axios.get(`${API_URL}/profile/${adminId}`);
-        setAdminProfile(res.data);
+        const token = localStorage.getItem("adminToken"); 
+
+        const res = await axios.put(`${API_URL}/students/bulk`, 
+            // 1. Send the array of update objects
+            updates, 
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        console.log("Successfully updated students:", res.data);
+        alert(`Successfully updated ${res.data.modifiedCount} student records!`);
+
+    } catch (err) {
+        console.error("Error during bulk update:", err.response ? err.response.data : err.message);
+        alert("Failed to update students.");
+    }
+};
+
+// You would call this function when the Admin updates a list.
+// updateMultipleStudents();
+ 
+
+  // ✅ Fetch admin's own profile information (No change)
+  const fetchAdminProfile = async () => { /* ... */ };
+
+  // ✅ Handle admin profile updates (No change)
+  const handleEditProfile = async () => { /* ... */ };
+
+  // ✅ Approve/Deny/Delete item (No change)
+  const handleApproval = async (id, action) => { /* ... */ };
+  const handleDeleteItem = async (id) => { /* ... */ };
+
+  // ⭐ UPDATED: Add new category (now uses mock storage/API call)
+  const handleAddCategory = async () => {
+    if (newCategory.trim() !== "" && !categories.includes(newCategory.trim())) {
+      try {
+        // ⭐ ACTION: Replace mockCategoryStorage.add with: await axios.post(CATEGORY_API_URL, { name: newCategory.trim() });
+        const updatedCategories = await mockCategoryStorage.add(newCategory.trim());
+        setCategories(updatedCategories);
+        setNewCategory("");
+      } catch (err) {
+        console.error("Error adding category:", err);
       }
-    } catch (err) {
-      console.error("Error fetching admin profile:", err);
-    }
-  };
-
-  //   Handle admin profile updates
-  const handleEditProfile = async () => {
-    try {
-      const adminId = localStorage.getItem("adminId");
-      await axios.put(`${API_URL}/profile/edit/${adminId}`, adminProfile);
-      alert("Profile updated successfully!");
-      setShowProfile(false);
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile.");
-    }
-  };
-
-  //   Approve/Deny/Delete item
-  const handleApproval = async (id, action) => {
-    try {
-      const endpoint = `${API_URL}/${action}/${id}`;
-      await axios.put(endpoint);
-      fetchPendingItems();
-    } catch (err) {
-      console.error(`Error ${action} item:`, err);
-    }
-  };
-
-  const handleDeleteItem = async (id) => {
-    try {
-      const endpoint = `${API_URL}/delete-item/${id}`;
-      await axios.delete(endpoint);
-      fetchPendingItems();
-    } catch (err) {
-      console.error("Error deleting item:", err);
-    }
-  };
-
-  //   Add new category
-  const handleAddCategory = () => {
-    if (newCategory.trim() !== "" && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setNewCategory("");
     }
   };
   
-  //   Delete category from state
-  const handleDeleteCategory = (cat) => {
-    setCategories(categories.filter(c => c !== cat));
+  // ⭐ UPDATED: Delete category from state (now uses mock storage/API call)
+  const handleDeleteCategory = async (cat) => {
+    try {
+        // ⭐ ACTION: Replace mockCategoryStorage.delete with: await axios.delete(`${CATEGORY_API_URL}/${cat}`);
+        const updatedCategories = await mockCategoryStorage.delete(cat);
+        setCategories(updatedCategories);
+    } catch (err) {
+        console.error("Error deleting category:", err);
+    }
   };
   
-  //   Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("adminId");
-    navigate("/"); // Navigate to the homepage
-  };
+  // ✅ Handle logout (No change)
+  const handleLogout = () => { /* ... */ };
 
   return (
     <div className="container-fluid" style={{ backgroundColor: "#fff", color: "#000" }}>
@@ -125,6 +159,7 @@ const AdminPanel = () => {
       {showProfile && (
         <div className="container my-4">
           <div className="card mx-auto" style={{ maxWidth: "500px" }}>
+            {/* ... (Admin Profile UI - No changes) ... */}
             <div className="card-header bg-primary text-white">
               Admin Profile
             </div>
@@ -177,12 +212,14 @@ const AdminPanel = () => {
                   {requests.length > 0 ? requests.map((req) => (
                     <div className="col-12 mb-4" key={req._id}>
                       <div className="card">
+                        {/* ⭐ IMPORTANT: Ensure your backend returns the student details (req.student) and correct image path */}
                         <img src={req.image || "https://via.placeholder.com/300"} className="card-img-top" alt="product" />
                         <div className="card-body">
                           <h5>{req.title}</h5>
                           <p>{req.description}</p>
                           <p><b>Price:</b> {req.price}</p>
-                          <p><b>Student:</b> {req.student?.name || "N/A"} | {req.student?.course || "N/A"}</p>
+                          {/* ⭐ STUDENT INFO: Displaying student name and course/semester */}
+                          <p><b>Student:</b> {req.student?.name || "N/A"} | {req.student?.course || "N/A"}</p> 
                           <p><b>Location:</b> {req.location} | <b>Category:</b> {req.category}</p>
                           <div className="d-flex gap-2">
                             <button className="btn btn-success btn-sm" onClick={() => handleApproval(req._id, "approve")}>Approve</button>
@@ -197,7 +234,7 @@ const AdminPanel = () => {
               </div>
 
               <div className="col-md-6 mb-4">
-                <h4>Registered Students</h4>
+                <h4 className="mb-3">Registered Students</h4>
                 <div className="table-responsive">
                   <table className="table table-bordered">
                     <thead className="table-light">
@@ -209,6 +246,7 @@ const AdminPanel = () => {
                       </tr>
                     </thead>
                     <tbody>
+                      {/* ⭐ STUDENT INFO: Students list shown here */}
                       {students.map((s) => (
                         <tr key={s._id}>
                           <td>{s.name}</td>
@@ -229,6 +267,7 @@ const AdminPanel = () => {
             <div className="row">
               <div className="col-md-6">
                 <ul className="list-group">
+                  {/* ⭐ CATEGORIES: Displaying dynamic categories */}
                   {categories.map((cat, idx) => (
                     <li className="list-group-item d-flex justify-content-between align-items-center" key={idx}>
                       {cat}

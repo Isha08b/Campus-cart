@@ -28,7 +28,7 @@ const PostItemForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!image) {
-      setMessage("❌ Please upload an image");
+      setMessage("Please upload an image");
       return;
     }
 
@@ -60,7 +60,7 @@ const PostItemForm = () => {
       setImage(null);
     } catch (err) {
       console.error(err);
-      setMessage("❌ Upload failed. Try again.");
+      setMessage("Upload failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ const PostItemForm = () => {
 
   return (
     <div className="container mt-4">
-      <h3 className="mb-3">📌 Post a New Item</h3>
+      <h3 className="mb-3">Post a New Item</h3>
       {message && <div className="alert alert-info">{message}</div>}
       <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light">
         
@@ -107,10 +107,10 @@ const PostItemForm = () => {
               required
             >
               <option value="">Select</option>
-              <option value="Laptops">💻 Laptops</option>
-              <option value="Books">📚 Books & Stationery</option>
-              <option value="Electronics">🔌 Electronics</option>
-              <option value="Other">📦 Other</option>
+              <option value="Laptops">Laptops</option>
+              <option value="Books">Books & Stationery</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 

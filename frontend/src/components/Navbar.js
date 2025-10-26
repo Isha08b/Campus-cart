@@ -69,9 +69,9 @@ function Navbar() {
 </div>
 <br/>
 <section>
-  <h2 className="text-center mb-4">User Registration</h2>
+  <h2 className="text-center mb-4">Registration</h2>
 <div className="container-fluid centre my-5" id='registration'>
-  <div className="row justify-content-center gap-4">
+  <div className="row justify-content-center gap-4" >
     {/* Admin Section */}
     <div className="col-md-4 p-4 shadow border rounded-4 bg-light">
       <div className="text-center">
@@ -79,28 +79,15 @@ function Navbar() {
           src="https://cdn-icons-png.flaticon.com/128/9703/9703596.png"
           alt="Admin Icon"
           className="mx-auto d-block"
-          style={{ width: '70px', height: '70px' }}
+          style={{ width: '70px', height: '70px'}}
         />
       </div>
-      <h2 className="mb-4 text-center">Admin Section</h2>
+      <h2 className="mb-4 text-center">Register Here</h2>
       <div className="text-center">
-        <Link to="/admin-signup" className="btn btn-success mx-2">Register as Admin</Link>
-      </div>',
-    </div>
-
-    {/* Student Section */}
-    <div className="col-md-4 p-4 shadow border rounded-4 bg-light">
+        <Link to="/admin-login" className="btn btn-success mx-2">Register as Admin</Link>
+      </div><br/>
       <div className="text-center">
-        <img
-          src="https://cdn-icons-png.flaticon.com/128/3135/3135810.png"
-          alt="Student Icon"
-          className="mx-auto d-block"
-          style={{ width: '70px', height: '70px' }}
-        />
-      </div>
-      <h2 className="mb-4 text-center">Student Section</h2>
-      <div className="text-center">
-        <Link to="/student-signup" className="btn btn-primary mx-2">Register as Student</Link>
+        <Link to="/student-login" className="btn btn-primary mx-2">Register as Student</Link>
       </div>
     </div>
   </div>

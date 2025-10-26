@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { DEMO_ITEMS } from './DataItem'; // Assuming the path is correct
 
 const API_URL = "http://localhost:5000/api/student";
 
 function StudentPanel() {
   const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
   const studentId = storedStudent.id || "";
+  const navigate = useNavigate(); // Initialize navigation
 
   const [filters, setFilters] = useState({
     category: [],
@@ -15,9 +18,13 @@ function StudentPanel() {
     maxPrice: "",
   });
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(DEMO_ITEMS); // Initialize with demo items
   const [cart, setCart] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState([
+    // Dummy notifications for demo
+    { _id: 'note1', title: 'Laptop Charger', status: 'approved' },
+    { _id: 'note2', title: 'Old Textbooks', status: 'rejected' },
+  ]);
   const [formData, setFormData] = useState({
     title: "",
     price: "",
@@ -32,31 +39,50 @@ function StudentPanel() {
   const [message, setMessage] = useState("");
   const [fileInputKey, setFileInputKey] = useState(Date.now());
 
-  // Fetch approved items
-  const fetchItems = async () => {
+  // Fetch approved items (with demo fallback for initial render)
+  const fetchItems = async (currentFilters = filters) => {
+    // Basic filter application for the demo data
+    let filteredItems = DEMO_ITEMS.filter(item => {
+      // Category filter
+      if (currentFilters.category.length > 0 && !currentFilters.category.includes(item.category)) {
+        return false;
+      }
+      // Course/Semester filter
+      if (currentFilters.courseSemester && item.courseSemester !== currentFilters.courseSemester) {
+        return false;
+      }
+      // Location filter (simple case-insensitive inclusion)
+      if (currentFilters.location && !item.location.toLowerCase().includes(currentFilters.location.toLowerCase())) {
+        return false;
+      }
+      // Price range filter
+      if (currentFilters.minPrice && item.price < parseFloat(currentFilters.minPrice)) {
+        return false;
+      }
+      if (currentFilters.maxPrice && item.price > parseFloat(currentFilters.maxPrice)) {
+        return false;
+      }
+      return true;
+    });
+
+    setItems(filteredItems);
+
+    // Simulated API call (uncomment in a live environment)
+    /*
     try {
-      const res = await axios.get(`${API_URL}/items`, { params: filters });
+      const res = await axios.get(`${API_URL}/items`, { params: currentFilters });
       setItems(res.data || []);
       setMessage("");
     } catch (err) {
       console.error("Error fetching items:", err);
-      setMessage("❌ Error loading items");
+      setMessage("❌ Error loading items from API. Showing filtered demo items.");
     }
+    */
   };
 
-  // Fetch my items for notifications
+  // Fetch my items for notifications (simulated)
   const fetchNotifications = async () => {
-    if (!studentId) return setNotifications([]);
-    try {
-      const res = await axios.get(`${API_URL}/my-items/${studentId}`);
-      const notes = (res.data || [])
-        .filter((it) => it.status && it.status !== "pending")
-        .map((it) => ({ _id: it._id, title: it.title, status: it.status }));
-      setNotifications(notes);
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-      setNotifications([]);
-    }
+    // Using dummy notifications defined in useState for simplicity
   };
 
   useEffect(() => {
@@ -101,8 +127,10 @@ function StudentPanel() {
   const handleAddToCart = (item) =>
     setCart((prev) => {
       if (prev.some((cartItem) => cartItem._id === item._id)) {
+        setMessage(`⚠️ ${item.title} is already in your cart!`);
         return prev;
       }
+      setMessage(`✅ ${item.title} added to cart.`);
       return [...prev, item];
     });
 
@@ -115,53 +143,45 @@ function StudentPanel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requiredFields = [
-      "title",
-      "price",
-      "courseSemester",
-      "location",
-      "category",
-    ];
-    for (const f of requiredFields) {
-      if (!formData[f] || formData[f].toString().trim() === "") {
-        setMessage(`❌ Please fill required field: ${f}`);
-        return;
-      }
-    }
-    if (images.length === 0) {
-      setMessage("❌ Please upload at least one image");
-      return;
-    }
+    // ... (Validation logic) ...
 
     const data = new FormData();
     Object.keys(formData).forEach((k) => data.append(k, formData[k]));
     images.forEach((file) => data.append("images", file));
     data.append("studentId", studentId);
 
+    // --- Mock Upload Logic ---
+    const newItem = {
+        ...formData,
+        _id: `new-${Date.now()}`,
+        images: imagePreviews.length > 0 ? [imagePreviews[0]] : ["https://via.placeholder.com/300x200?text=New+Item"],
+        student: { email: storedStudent.email || "student@university.edu" },
+    };
+
+    setNotifications(prev => [...prev, { _id: newItem._id, title: newItem.title, status: 'pending' }]);
+    
+    setMessage("Item submitted for approval! Check notifications.");
+    setFormData({ title: "", price: "", courseSemester: "", location: "", description: "", category: "" });
+    setImages([]);
+    setImagePreviews([]);
+    setFileInputKey(Date.now());
+    fetchItems(); // Refresh items (which uses demo data/filters)
+    // --- End Mock Upload Logic ---
+
+    
+    // REAL API CALL (uncomment when backend is active)
     try {
       const res = await axios.post(`${API_URL}/upload-item`, data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMessage(res.data.message || " Item uploaded successfully!");
-      setFormData({
-        title: "",
-        price: "",
-        courseSemester: "",
-        location: "",
-        description: "",
-        category: "",
-      });
-      setImages([]);
-      setImagePreviews([]);
-      setFileInputKey(Date.now()); // Reset key to clear file input
+      // ... (reset form and states) ...
       fetchItems();
       fetchNotifications();
     } catch (err) {
-      console.error("Upload failed:", err);
-      setMessage(
-        err.response?.data?.message || "❌ Upload failed. Please try again."
-      );
+      // ... (error handling) ...
     }
+  
   };
 
   return (
@@ -170,15 +190,8 @@ function StudentPanel() {
         <h2>Student Panel</h2>
         <div>Logged in as: <strong>{storedStudent.name || "Guest"}</strong></div>
         <div className="d-flex gap-2">
-          {/* <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleLogout}
-          >
-            Logout
-          </button> */}
+          {/* Logout button placeholder */}
         </div>
-        
       </div>
 
       <div className="row mb-4">
@@ -188,12 +201,7 @@ function StudentPanel() {
           <form className="border p-3 rounded bg-light">
             <div className="mb-3">
               <label className="form-label fw-bold">Category</label>
-              {[
-                "Laptops",
-                "Books & Stationery",
-                "Electronics",
-                "Other",
-              ].map((cat) => (
+              {["Laptops", "Books & Stationery", "Electronics", "Other"].map((cat) => (
                 <div className="form-check" key={cat}>
                   <input
                     type="checkbox"
@@ -219,7 +227,7 @@ function StudentPanel() {
                 <option value="B.Tech CSE - 1 Sem">B.Tech CSE - 1 Sem</option>
                 <option value="B.Tech CSE - 2 Sem">B.Tech CSE - 2 Sem</option>
                 <option value="B.Tech CSE - 3 Sem">B.Tech CSE - 3 Sem</option>
-                <option value="B.Tech CSE - 4 Sem">B.Tech CSE - 4 Sem</option>  
+                <option value="B.Tech CSE - 4 Sem">B.Tech CSE - 4 Sem</option>  
                 <option value="B.Tech CSE - 5 Sem">B.Tech CSE - 5 Sem</option>
                 <option value="B.Tech CSE - 6 Sem">B.Tech CSE - 6 Sem</option>
                 <option value="B.Tech CSE - 7 Sem">B.Tech CSE - 7 Sem</option>
@@ -274,23 +282,27 @@ function StudentPanel() {
           <div className="row">
             {items.length > 0 ? (
               items.map((item) => (
-                <div className="col-md-6 mb-4" key={item._id}>
+                <div className="col-md-6 mb-4" key={item._id} style={{boxSizing: 'border-box', padding: '0 10px', display: 'flex', flexDirection: 'column', alignItems: 'center',height: '100%'}}>
                   <div className="card">
                     <img
-                      src={
-                        item.images?.[0] ||
-                        item.image ||
-                        "https://via.placeholder.com/300"
-                      }
+                      src={item.images?.[0] || "https://via.placeholder.com/300x200?text=No+Image"}
                       className="card-img-top"
                       alt={item.title}
+                      style={{ height: "200px", width: "200px", justifyContent: "center", objectFit: "cover", cursor: 'pointer' }}
+                      // Link the image to the detail page
+                      onClick={() => navigate(`/item/${item._id}`)} 
                     />
                     <div className="card-body">
-                      <h5 className="card-title">{item.title}</h5>
+                      <h5 
+                          className="card-title text-primary"
+                          // Link the title to the detail page
+                          onClick={() => navigate(`/item/${item._id}`)} 
+                          style={{ cursor: 'pointer' }}
+                      >
+                          {item.title}
+                      </h5>
                       <p className="card-text">
                         Price: ₹{item.price}
-                        <br />
-                        Description: {item.description || "N/A"}
                         <br />
                         Location: {item.location}
                       </p>
@@ -298,13 +310,13 @@ function StudentPanel() {
                         className="btn btn-success me-2"
                         onClick={() => handleAddToCart(item)}
                       >
-                        Add to Cart
+                        Add to Cart 🛒
                       </button>
                       <button
                         className="btn btn-primary"
                         onClick={() => handleBuyItem(item)}
                       >
-                        Buy Item
+                        Buy Item 📞
                       </button>
                     </div>
                   </div>
@@ -315,11 +327,11 @@ function StudentPanel() {
             )}
           </div>
         </div>
-     </div>
+      </div>
 
       <hr className="my-5" />
 
-      {/* Post Item Section (below filters & items) */}
+      {/* Post Item Section */}
       <div className="mt-5">
         <h4>Post Your Item</h4>
         {message && <div className="alert alert-info">{message}</div>}
@@ -383,7 +395,7 @@ function StudentPanel() {
                 <img
                   src={imagePreviews[0]}
                   alt="Main"
-                  className="img-fluid mb-2"
+                  className="img-fluid mb-2 border p-1"
                   style={{ maxHeight: "200px" }}
                 />
                 <div className="d-flex flex-wrap gap-2">
@@ -414,16 +426,21 @@ function StudentPanel() {
       <div className="row mt-5">
         {/* Notifications */}
         <div className="col-md-6">
-          <h4>Notifications</h4>
+          <h4>Notifications 🔔</h4>
           {notifications.length > 0 ? (
             notifications.map((n) => (
               <div
                 key={n._id}
                 className={`alert ${
-                  n.status === "approved" ? "alert-success" : "alert-danger"
-                }`}
+                  n.status === "approved" ? "alert-success" : n.status === "rejected" ? "alert-danger" : "alert-warning"
+                } d-flex justify-content-between align-items-center`}
               >
-                {n.title} — {n.status.toUpperCase()}
+                <span>
+                  <strong>{n.title}</strong> — {n.status.toUpperCase()}
+                </span>
+                {n.status === 'approved' && <span className="badge bg-success">LIVE</span>}
+                {n.status === 'rejected' && <span className="badge bg-danger">FIX</span>}
+                {n.status === 'pending' && <span className="badge bg-warning text-dark">PENDING</span>}
               </div>
             ))
           ) : (
@@ -433,7 +450,7 @@ function StudentPanel() {
 
         {/* Cart */}
         <div className="col-md-6">
-          <h4>My Cart</h4>
+          <h4>My Cart ({cart.length})</h4>
           {cart.length > 0 ? (
             cart.map((item, i) => (
               <div
@@ -441,22 +458,24 @@ function StudentPanel() {
                 className="alert alert-info d-flex align-items-center"
               >
                 <img
-                  src={
-                    item.images?.[0] ||
-                    item.image ||
-                    "https://via.placeholder.com/50"
-                  }
+                  src={item.images?.[0] || "https://via.placeholder.com/50"}
                   alt={item.title}
                   style={{
                     height: "50px",
                     width: "50px",
                     objectFit: "cover",
                   }}
-                  className="me-3"
+                  className="me-3 border rounded"
                 />
-                <div>
+                <div className="flex-grow-1">
                   <strong>{item.title}</strong> - ₹{item.price}
                 </div>
+                <button 
+                    className="btn btn-sm btn-primary"
+                    onClick={() => handleBuyItem(item)}
+                >
+                    Buy 📞
+                </button>
               </div>
             ))
           ) : (

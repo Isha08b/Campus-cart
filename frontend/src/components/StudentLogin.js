@@ -34,7 +34,7 @@ const StudentLogin = () => {
   };
 
   return (
-    <div className="container mt-5 col-md-6" id="student-login">
+    <div className="container mt-5 col-md-6" id="student-login"style={{ maxWidth: '400px', background: 'white' }}>
       <h2 className="mb-4 text-center">Student Login</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
@@ -56,7 +56,10 @@ const StudentLogin = () => {
           onChange={handleChange}
           required
         />
-        <button type="submit" className="btn btn-success w-100">Login</button>
+        <button type="submit" className="btn btn-primary w-100">Login</button>
+        <p style={{textAlign:"center",marginTop:"15px"}}>Don't have an account? Click Here</p>
+        <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/student-signup')}>Signup</button>
+
       </form>
     </div>
   );

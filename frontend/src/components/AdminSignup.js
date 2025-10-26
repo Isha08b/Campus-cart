@@ -114,7 +114,6 @@ const AdminSignup = () => {
         </div>
 
         <button type="submit" className="btn btn-primary w-100" style={{ margin: '16px 0' }}>Sign Up</button>
-        <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/admin-login')}>Back to Login</button>
       </form>
     </div>
   );

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: '',  //   use password, not uniqueId
+    password: ''
   });
 
   const [error, setError] = useState('');
@@ -25,7 +25,7 @@ const AdminLogin = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/admin/login', formData);
       
-      if (response.status === 200) {   //   check status, backend returns message only
+      if (response.status === 200) {  
         alert('Login Successful');
         navigate('/admin-panel');
       }
@@ -66,6 +66,8 @@ const AdminLogin = () => {
         </div>
 
         <button type="submit" className="btn btn-primary w-100">Login</button>
+        <p style={{textAlign:"center",marginTop:"15px"}}>Don't have an account? Click Here</p>
+        <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/admin-signup')}>Signup</button>
       </form>
     </div>
   );

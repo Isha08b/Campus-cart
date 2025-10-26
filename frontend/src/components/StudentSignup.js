@@ -37,7 +37,7 @@ const StudentSignup = () => {
   };
 
   return (
-    <div className="container mt-5 col-md-6">
+    <div className="container mt-5 col-md-6" style={{ maxWidth: '400px', background: 'white' }}>
     
       <h2 className="mb-4 text-center">Student Signup</h2>
       <form onSubmit={handleSubmit}>
@@ -46,11 +46,9 @@ const StudentSignup = () => {
         <input className="form-control mb-2" name="collegeId" placeholder="College ID" value={formData.collegeId} onChange={handleChange} required />
         <input className="form-control mb-2" type="number" name="semester" placeholder="Semester" value={formData.semester} onChange={handleChange} required />
         <input className="form-control mb-3" type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-        <button type="submit" className="btn btn-primary w-100"  style={{ margin: '16px 0' }}>Sign Up</button>
-        <button type="button" className="btn btn-secondary w-100" onClick={() => navigate('/student-login')}>Back to Login</button>
+        <button type="submit" className="btn btn-primary w-100" onClick={() => navigate('/student-panel')} style={{ margin: '16px 0' }}>Sign Up</button>
       </form>
     </div>
   );
 };
-
 export default StudentSignup;
