@@ -40,11 +40,11 @@ const StudentSignup = () => {
     <div className="container mt-5 col-md-6" style={{ maxWidth: '400px', background: 'white' }}>
     
       <h2 className="mb-4 text-center">Student Signup</h2>
-      <form onSubmit={handleSubmit}>
-        <input className="form-control mb-2" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
-        <input className="form-control mb-2" type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input className="form-control mb-2" name="collegeId" placeholder="College ID" value={formData.collegeId} onChange={handleChange} required />
-        <input className="form-control mb-2" type="number" name="semester" placeholder="Semester" value={formData.semester} onChange={handleChange} required />
+      <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light">
+        <input className="form-control mb-3" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+        <input className="form-control mb-3" type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+        <input className="form-control mb-3" name="collegeId" placeholder="College ID" value={formData.collegeId} onChange={handleChange} required />
+        <input className="form-control mb-3" type="number" name="semester" placeholder="Semester" value={formData.semester} onChange={handleChange} required />
         <input className="form-control mb-3" type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
         <button type="submit" className="btn btn-primary w-100" onClick={() => navigate('/student-panel')} style={{ margin: '16px 0' }}>Sign Up</button>
       </form>

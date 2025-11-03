@@ -35,8 +35,8 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '400px', background: 'white' }}>
-      <h2 className="mb-4">Admin Login</h2>
+    <div className="container mt-5" style={{ maxWidth: '400px', background: 'white'}}>
+      <h2 className="mb-4 text-center">Admin Login</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light">
         <div className="mb-3">

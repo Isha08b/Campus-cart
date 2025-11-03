@@ -45,9 +45,10 @@ const AdminSignup = () => {
   };
 
   return (
-    <div className="container mt-5 col-md-6" style={{ maxWidth: '400px', background: 'white' }}>
+    <div className="container mt-5 col-md-6" style={{ maxWidth: '400px', background: 'white'}}>
       <h2 className="mb-4 text-center">Admin Signup</h2>
-      <form onSubmit={handleSubmit}>
+
+      <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light">
         <div className="mb-3">
           <label htmlFor="name" className="form-label">Name</label>
           <input

@@ -37,7 +37,7 @@ const StudentLogin = () => {
     <div className="container mt-5 col-md-6" id="student-login"style={{ maxWidth: '400px', background: 'white' }}>
       <h2 className="mb-4 text-center">Student Login</h2>
       {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-light">
         <input
           className="form-control mb-2"
           type="email"
